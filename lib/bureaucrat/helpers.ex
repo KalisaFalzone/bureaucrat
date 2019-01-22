@@ -89,11 +89,11 @@ defmodule Bureaucrat.Helpers do
 
     opts =
       opts
-      |> Keyword.put_new_lazy(:description, format_test_name(fun, opts[:description]))
-      |> Keyword.put_new_lazy(:group_title, group_title_for(mod, titles, opts[:group_title]))
-      |> Keyword.put_new_lazy(:module, get_value(mod, opts[:module]))
-      |> Keyword.put_new_lazy(:file, get_value(file, opts[:file]))
-      |> Keyword.put_new_lazy(:line, get_value(line, opts[:line]))
+      |> Keyword.put_new_lazy(:description, fn -> format_test_name(fun) end)
+      |> Keyword.put_new_lazy(:group_title, fn -> group_title_for(mod, titles) end)
+      |> Keyword.put_new(:module, mod)
+      |> Keyword.put_new(:file, file)
+      |> Keyword.put_new(:line, line)
 
     quote bind_quoted: [conn: conn, opts: opts] do
       Bureaucrat.Recorder.doc(conn, opts)
@@ -101,24 +101,17 @@ defmodule Bureaucrat.Helpers do
     end
   end
 
-  def get_value(value_from_caller, nil), do: value_from_caller
+  def format_test_name("test " <> name), do: name
 
-  def get_value(_value_from_caller, value_from_options), do: value_from_options
+  def group_title_for(_mod, []), do: nil
 
-  def format_test_name("test " <> name, nil), do: name
-  def format_test_name(_fun, _description), do: fn -> no_return() end
-
-  def group_title_for(_mod, [], nil), do: nil
-
-  def group_title_for(mod, [{other, path} | paths], nil) do
+  def group_title_for(mod, [{other, path} | paths]) do
     if String.replace_suffix(to_string(mod), "Test", "") == to_string(other) do
       path
     else
       group_title_for(mod, paths)
     end
   end
-
-  def group_title_for(_mod, _titles, group_title), do: group_title
 
   @doc """
   Helper function for adding the phoenix_controller and phoenix_action keys to
