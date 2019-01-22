@@ -89,7 +89,7 @@ defmodule Bureaucrat.Helpers do
 
     opts =
       opts
-      |> Keyword.put_new(:description, format_test_name(fun))
+      |> Keyword.put_new_lazy(:description, format_test_name(fun))
       |> Keyword.put_new(:group_title, group_title_for(mod, titles))
       |> Keyword.put(:module, mod)
       |> Keyword.put(:file, file)
